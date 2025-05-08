@@ -13,7 +13,7 @@ fn run_template(path: PathBuf, source: &str, buffer: &str) -> Result<(), Error> 
             .replace("crate::dynamic::LzssDyn", "crate::generic::Lzss")
             .replace(
                 "impl LzssDyn {",
-                "impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: usize> Lzss<EI, EJ, C, N, N2> {",
+                "impl<const EI: usize, const EJ: usize, const P: usize, const C: u8, const N: usize, const N2: usize> Lzss<EI, EJ, P, C, N, N2> {",
             )
             .replace("&self,", "")
             .replace("buffer: &mut [u8],", buffer)
@@ -21,7 +21,7 @@ fn run_template(path: PathBuf, source: &str, buffer: &str) -> Result<(), Error> 
             .replace("self.ej", "EJ")
             .replace("self.f()", "Self::F")
             .replace("self.n()", "N")
-            .replace("self.p()", "Self::P")
+            .replace("self.p", "P")
             ;
         l.push('\n');
         file.write_all(l.as_bytes())?;

@@ -28,7 +28,7 @@ fn combinations() -> Vec<(usize, usize, bool)> {
 fn dynamic() {
     debug_assert!(false, "Disabled in debug mode");
     for (ei, ej, is_valid) in combinations() {
-        let params = LzssDyn::new(ei, ej, INIT_BYTE);
+        let params = LzssDyn::new(ei, ej, (ei + ej) / 9, INIT_BYTE);
         assert_eq!(
             is_valid,
             params.is_ok(),

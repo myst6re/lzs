@@ -3,8 +3,8 @@
 use crate::generic::Lzss;
 use crate::macros::{get, search_loop, set};
 
-impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: usize>
-    Lzss<EI, EJ, C, N, N2>
+impl<const EI: usize, const EJ: usize, const P: usize, const C: u8, const N: usize, const N2: usize>
+    Lzss<EI, EJ, P, C, N, N2>
 {
     // Allow many single char names, this is done to copy the original code as close as possible.
     #![allow(clippy::many_single_char_names)]
@@ -49,14 +49,14 @@ impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: us
                     }
                 }
             }
-            if y <= Self::P {
+            if y <= P {
                 out_buf = (out_buf << 9) | 0x100 | usize::from(c);
                 out_len += 9;
                 y = 1;
             } else {
                 out_buf = (out_buf << (1 + EI + EJ))
                     | (((x + offset2) & (N - 1)) << EJ)
-                    | (y - (Self::P + 1));
+                    | (y - (P + 1));
                 out_len += 1 + EI + EJ;
             }
             while out_len > 8 {

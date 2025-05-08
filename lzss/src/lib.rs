@@ -75,7 +75,7 @@
 //! # Example
 //! ```rust
 //! # use lzss::{Lzss, SliceReader, SliceWriter};
-//! type MyLzss = Lzss<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>;
+//! type MyLzss = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
 //! let input = b"Example Data";
 //! let mut output = [0; 30];
 //! let result = MyLzss::compress(

@@ -14,6 +14,7 @@ mod decompress;
 /// # Parameters
 /// * `EI` - The number of bits in the offset, usually `10..13`
 /// * `EJ` - The number of bits in the length, usually `4..5`
+/// * `p` - If match length <= P then output one character
 /// * `C` - The initial fill byte of the buffer, usually `0x20` (space)
 /// * `N` - Equals `1 << EI`, the size of the buffer for [`Lzss::decompress`]
 /// * `N2` - Equals `2 << EI` (`N * 2`), the size of the buffer for [`Lzss::compress`]
@@ -37,7 +38,7 @@ mod decompress;
 /// # Example
 /// ```rust
 /// # use lzss::{Lzss, SliceReader, SliceWriterExact};
-/// type MyLzss = Lzss<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>;
+/// type MyLzss = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
 /// let input = b"Example Data";
 /// let mut output = [0; 14];
 /// let result = MyLzss::compress_stack(
@@ -46,12 +47,12 @@ mod decompress;
 /// );
 /// assert!(result.is_ok()); // the output is exactly 14 bytes long
 /// ```
-pub struct Lzss<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: usize>(
+pub struct Lzss<const EI: usize, const EJ: usize, const P: usize, const C: u8, const N: usize, const N2: usize>(
     Infallible,
 );
 
-impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: usize>
-    Lzss<EI, EJ, C, N, N2>
+impl<const EI: usize, const EJ: usize, const P: usize, const C: u8, const N: usize, const N2: usize>
+    Lzss<EI, EJ, P, C, N, N2>
 {
     /// Create a new [`LzssDyn`] with the parameter from this generic type.
     ///
@@ -59,10 +60,10 @@ impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: us
     ///
     /// ```rust
     /// # use lzss::{Lzss, LzssDyn};
-    /// type MyLzss = Lzss<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>;
+    /// type MyLzss = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
     /// const MY_DYN1: LzssDyn = MyLzss::as_dyn();
     /// // or
-    /// const MY_DYN2: LzssDyn = Lzss::<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>::as_dyn();
+    /// const MY_DYN2: LzssDyn = Lzss::<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>::as_dyn();
     /// ```
     #[must_use]
     pub const fn as_dyn() -> LzssDyn {
@@ -71,6 +72,7 @@ impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: us
         LzssDyn {
             ei: EI,
             ej: EJ,
+            p: P,
             c: C,
         }
     }
@@ -220,9 +222,8 @@ impl<const EI: usize, const EJ: usize, const C: u8, const N: usize, const N2: us
 
     // non-public helpers
 
-    pub(crate) const P: usize = (1 + EI + EJ) / 9; /* If match length <= P then output one character */
-    pub(crate) const F: usize = (1 << EJ) + Self::P; /* lookahead buffer size */
-    pub(crate) const MIN_GAP_SIZE: usize = Self::P + 4;
+    pub(crate) const F: usize = (1 << EJ) + P; /* lookahead buffer size */
+    pub(crate) const MIN_GAP_SIZE: usize = P + 4;
 
     const ASSERT_PARAMETERS: Result<(), ()> = {
         if EJ == 0 {
@@ -258,7 +259,7 @@ mod tests {
     use crate::vec::VecWriter;
     use crate::void::ResultLzssErrorVoidExt;
 
-    type TestLZSS = Lzss<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>;
+    type TestLZSS = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
 
     const TEST_DATA: &[u8; 27] = b"Sample   Data   11221233123";
     const COMPRESSED_DATA: [u8; 26] = [

@@ -9,6 +9,7 @@ mod decompress;
 /// # Parameters
 /// * `ei` - The number of bits in the offset, usually `10..13`
 /// * `ej` - The number of bits in the length, usually `4..5`
+/// * `p` - If match length <= P then output one character
 /// * `c` - The initial fill byte of the buffer, usually `0x20` (space)
 ///
 /// # Restrictions
@@ -20,7 +21,7 @@ mod decompress;
 /// # Example
 /// ```rust
 /// # use lzss::{LzssDyn, LzssDynError, ResultLzssErrorVoidExt, SliceReader, VecWriter};
-/// let my_lzss = LzssDyn::new(10, 4, 0x20)?;
+/// let my_lzss = LzssDyn::new(10, 4, 1, 0x20)?;
 /// let input = b"Example Data";
 /// let result = my_lzss.compress(
 ///   SliceReader::new(input),
@@ -33,6 +34,7 @@ mod decompress;
 pub struct LzssDyn {
     pub(crate) ei: usize,
     pub(crate) ej: usize,
+    pub(crate) p: usize,
     pub(crate) c: u8,
 }
 
@@ -42,7 +44,7 @@ impl LzssDyn {
     /// If the parameter are not valid (see above) an error is returned.
     ///
     /// For creating a const see [`Lzss::as_dyn`](crate::generic::Lzss::as_dyn).
-    pub fn new(ei: usize, ej: usize, c: u8) -> Result<Self, LzssDynError> {
+    pub fn new(ei: usize, ej: usize, p: usize, c: u8) -> Result<Self, LzssDynError> {
         if ej == 0 {
             Err(LzssDynError::EjIsZero)
         } else if ej >= ei {
@@ -52,7 +54,7 @@ impl LzssDyn {
         } else if ei + ej > 24 || (ei as u32) + 1 >= usize::BITS {
             Err(LzssDynError::EiEjToLarge)
         } else {
-            Ok(LzssDyn { ei, ej, c })
+            Ok(LzssDyn { ei, ej, p, c })
         }
     }
 
@@ -83,16 +85,17 @@ impl LzssDyn {
         1 << self.ei
     }
 
+    /// Get the p parameter.
     #[inline(always)]
     #[must_use]
-    pub(crate) const fn p(&self) -> usize {
-        (1 + self.ei + self.ej) / 9
+    pub const fn p(&self) -> usize {
+        self.p
     }
 
     #[inline(always)]
     #[must_use]
     pub(crate) const fn f(&self) -> usize {
-        (1 << self.ej) + self.p()
+        (1 << self.ej) + self.p
     }
 
     /// Compress the input data into the output.
@@ -197,7 +200,7 @@ mod tests {
     use crate::vec::VecWriter;
     use crate::void::ResultLzssErrorVoidExt;
 
-    const TEST_LZSS: LzssDyn = Lzss::<10, 4, 0x20, { 1 << 10 }, { 2 << 10 }>::as_dyn();
+    const TEST_LZSS: LzssDyn = Lzss::<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>::as_dyn();
 
     const TEST_DATA: &[u8; 27] = b"Sample   Data   11221233123";
     const COMPRESSED_DATA: [u8; 26] = [

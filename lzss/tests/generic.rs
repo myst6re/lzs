@@ -6,13 +6,13 @@ use lzss::{Lzss, ResultLzssErrorVoidExt, SliceReader, VecWriter};
 mod common;
 
 macro_rules! test_generic {
-    ($name:ident, $ei:expr, $ej:expr) => {
+    ($name:ident, $ei:expr, $ej:expr, $p:expr) => {
         #[test]
         #[ignore]
         fn $name() {
             debug_assert!(false, "Disabled in debug mode");
 
-            type MyLzss = Lzss<$ei, $ej, INIT_BYTE, { 1 << $ei }, { 2 << $ei }>;
+            type MyLzss = Lzss<$ei, $ej, $p, INIT_BYTE, { 1 << $ei }, { 2 << $ei }>;
 
             // compress and decompress
             let compressed = MyLzss::compress_heap(
@@ -42,12 +42,12 @@ macro_rules! test_generic {
 }
 
 // "regular"
-test_generic!(generic_10_4, 10, 4);
-test_generic!(generic_11_5, 11, 5);
-test_generic!(generic_12_4, 12, 4);
-test_generic!(generic_13_5, 13, 5);
+test_generic!(generic_10_4, 10, 4, 1);
+test_generic!(generic_11_5, 11, 5, 1);
+test_generic!(generic_12_4, 12, 4, 2);
+test_generic!(generic_13_5, 13, 5, 1);
 // "extremes"
-test_generic!(generic_5_3, 5, 3);
-test_generic!(generic_6_2, 6, 2);
-test_generic!(generic_13_11, 13, 11);
-test_generic!(generic_23_1, 23, 1);
+test_generic!(generic_5_3, 5, 3, 1);
+test_generic!(generic_6_2, 6, 2, 1);
+test_generic!(generic_13_11, 13, 11, 1);
+test_generic!(generic_23_1, 23, 1, 1);
