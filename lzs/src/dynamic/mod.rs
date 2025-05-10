@@ -31,6 +31,7 @@ impl Lzs {
     /// If the parameter are not valid (see above) an error is returned.
     ///
     /// For creating a const see [`Lzs::as_dyn`](crate::generic::Lzs::as_dyn).
+    #[must_use]
     pub const fn new(c: u8) -> Self {
         Lzs { c }
     }
@@ -104,7 +105,8 @@ mod tests {
     const TEST_LZS: Lzs = Lzs::new(0x20);
     const TEST_DATA: &[u8; 27] = b"Sample   Data   11221233123";
     const COMPRESSED_DATA: [u8; 27] = [
-        191, 83, 97, 109, 112, 108, 101, 235, 240, 68, 247, 97, 116, 97, 235, 240, 49, 49, 50, 50, 15, 49, 50, 51, 51, 2, 0
+        191, 83, 97, 109, 112, 108, 101, 235, 240, 68, 247, 97, 116, 97, 235, 240, 49, 49, 50, 50,
+        15, 49, 50, 51, 51, 2, 0,
     ];
 
     #[test]

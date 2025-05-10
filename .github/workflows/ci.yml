@@ -2,9 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [ master ]
   pull_request:
-  schedule:
-    - cron: '0 19 * * 3'
+    branches: [ master ]
+  create: null
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   ci:
@@ -42,7 +46,7 @@ jobs:
       # check readme
       - run: cargo install cargo-rdme
       - run: cargo rdme --check
-        working-directory: ./lzss
+        working-directory: ./lzs
 
       # tests (safe+std+alloc, alloc) (std implies alloc, tests require alloc)
       - run: cargo test --release --all-features -- --include-ignored

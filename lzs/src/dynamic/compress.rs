@@ -10,16 +10,16 @@ impl Lzs {
     #![allow(clippy::many_single_char_names)]
     #[inline(always)]
     pub(crate) fn compress_internal<R: Read, W: Write>(
-        &self,
+        self,
         reader: &mut R,
         writer: &mut W,
     ) -> Result<(), LzsError<R::Error, W::Error>> {
         // Initialize the text_buf with C (a character that will appear often)
         let mut text_buf = [self.c; Self::n() + Self::f() - 1];
         // Initialize trees with N
-        let mut lson = [Self::n(); Self::n() + 1];
-        let mut rson = [Self::n(); Self::n() + 257];
-        let mut dad = [Self::n(); Self::n() + 1];
+        let mut lson = [Self::n() as u16; Self::n() + 1];
+        let mut rson = [Self::n() as u16; Self::n() + 257];
+        let mut dad = [Self::n() as u16; Self::n() + 1];
         /* code_buf[1..16] saves eight units of code, and
          * code_buf[0] works as eight flags, "1" representing that the unit
          * is an unencoded letter (1 byte), "0" a position-and-length pair
@@ -34,12 +34,12 @@ impl Lzs {
 
         while len < Self::f() {
             if let Some(c) = reader.read().map_err(LzsError::ReadError)? {
-                set!(text_buf, r + len, c)
+                set!(text_buf, r + len, c);
             } else {
                 break;
             }
 
-            len += 1
+            len += 1;
         }
 
         if len == 0 {
@@ -47,22 +47,22 @@ impl Lzs {
         }
 
         for i in 1..=Self::f() {
-            Self::insert_node(r - i, &mut lson, &mut rson, &mut dad, text_buf);
+            Self::insert_node(r - i, &mut lson, &mut rson, &mut dad, &text_buf);
         }
 
         let (mut match_position, mut match_length) =
-            Self::insert_node(r, &mut lson, &mut rson, &mut dad, text_buf);
+            Self::insert_node(r, &mut lson, &mut rson, &mut dad, &text_buf);
 
         loop {
             if match_length > len {
-                match_length = len
+                match_length = len;
             }
 
             if match_length <= Self::threshold() {
                 match_length = 1;
                 set!(code_buf, 0, get!(code_buf, 0) | mask);
                 set!(code_buf, code_buf_ptr, get!(text_buf, r));
-                code_buf_ptr += 1
+                code_buf_ptr += 1;
             } else {
                 set!(code_buf, code_buf_ptr, match_position as u8);
                 code_buf_ptr += 1;
@@ -78,10 +78,8 @@ impl Lzs {
             mask <<= 1;
 
             if mask == 0 {
-                for i in 0..code_buf_ptr {
-                    writer
-                        .write(get!(code_buf, i))
-                        .map_err(LzsError::WriteError)?;
+                for c in code_buf.iter().take(code_buf_ptr) {
+                    writer.write(*c).map_err(LzsError::WriteError)?;
                 }
                 set!(code_buf, 0, 0);
                 mask = 1;
@@ -97,19 +95,19 @@ impl Lzs {
                     set!(text_buf, s, c);
 
                     if s < Self::f() - 1 {
-                        set!(text_buf, s + Self::n(), c)
+                        set!(text_buf, s + Self::n(), c);
                     }
 
                     s = (s + 1) & (Self::n() - 1);
                     r = (r + 1) & (Self::n() - 1);
 
                     (match_position, match_length) =
-                        Self::insert_node(r, &mut lson, &mut rson, &mut dad, text_buf);
+                        Self::insert_node(r, &mut lson, &mut rson, &mut dad, &text_buf);
                 } else {
                     break;
                 }
 
-                i += 1
+                i += 1;
             }
 
             while i < last_match_length {
@@ -119,9 +117,9 @@ impl Lzs {
                 len -= 1;
                 if len > 0 {
                     (match_position, match_length) =
-                        Self::insert_node(r, &mut lson, &mut rson, &mut dad, text_buf);
+                        Self::insert_node(r, &mut lson, &mut rson, &mut dad, &text_buf);
                 }
-                i += 1
+                i += 1;
             }
 
             if len == 0 {
@@ -131,31 +129,29 @@ impl Lzs {
 
         if code_buf_ptr > 1 {
             // Send remaining code
-            for i in 0..code_buf_ptr {
-                writer
-                    .write(get!(code_buf, i))
-                    .map_err(LzsError::WriteError)?;
+            for c in code_buf.iter().take(code_buf_ptr) {
+                writer.write(*c).map_err(LzsError::WriteError)?;
             }
-        };
+        }
 
         Ok(())
     }
 
     /**
-     * Inserts string of length F, text_buf[r..r+F-1], into one of the
-     * trees (text_buf[r]'th tree) and returns the longest-match position
-     * and length via the global variables match_position and match_length.
-     * If match_length = F, then removes the old node in favor of the new
+     * Inserts string of length F, `text_buf[r..r+F-1]`, into one of the
+     * trees (`text_buf[r]`'th tree) and returns the longest-match position
+     * and length.
+     * If `match_length` = F, then removes the old node in favor of the new
      * one, because the old one will be deleted sooner.
      * Note r plays double role, as tree node and position in buffer.
      */
     #[inline(always)]
     fn insert_node(
         r: usize,
-        lson: &mut [usize; Self::n() + 1],
-        rson: &mut [usize; Self::n() + 257],
-        dad: &mut [usize; Self::n() + 1],
-        text_buf: [u8; Self::n() + Self::f() - 1],
+        lson: &mut [u16; Self::n() + 1],
+        rson: &mut [u16; Self::n() + 257],
+        dad: &mut [u16; Self::n() + 1],
+        text_buf: &[u8; Self::n() + Self::f() - 1],
     ) -> (usize, usize) {
         let mut match_position = 0;
         let mut match_length = 0;
@@ -163,26 +159,23 @@ impl Lzs {
         let mut cmp = 1i32;
         let mut p = Self::n() + 1 + get!(text_buf, r) as usize;
 
-        set!(lson, r, Self::n());
-        set!(rson, r, Self::n());
+        set!(lson, r, Self::n() as u16);
+        set!(rson, r, Self::n() as u16);
 
         loop {
             if cmp >= 0 {
-                if get!(rson, p) != Self::n() {
-                    p = get!(rson, p)
-                } else {
-                    set!(rson, p, r);
-                    set!(dad, r, p);
+                if get!(rson, p) == Self::n() as u16 {
+                    set!(rson, p, r as u16);
+                    set!(dad, r, p as u16);
                     return (match_position, match_length);
                 }
+                p = get!(rson, p) as usize;
+            } else if get!(lson, p) == Self::n() as u16 {
+                set!(lson, p, r as u16);
+                set!(dad, r, p as u16);
+                return (match_position, match_length);
             } else {
-                if get!(lson, p) != Self::n() {
-                    p = get!(lson, p)
-                } else {
-                    set!(lson, p, r);
-                    set!(dad, r, p);
-                    return (match_position, match_length);
-                }
+                p = get!(lson, p) as usize;
             }
 
             let mut i = 1;
@@ -191,7 +184,7 @@ impl Lzs {
                 if cmp != 0 {
                     break;
                 }
-                i += 1
+                i += 1;
             }
 
             if i > match_length {
@@ -208,16 +201,16 @@ impl Lzs {
         set!(lson, r, get!(lson, p));
         set!(rson, r, get!(rson, p));
 
-        set!(dad, get!(lson, p), r);
-        set!(dad, get!(rson, p), r);
+        set!(dad, get!(lson, p) as usize, r as u16);
+        set!(dad, get!(rson, p) as usize, r as u16);
 
-        if get!(rson, get!(dad, p)) == p {
-            set!(rson, get!(dad, p), r);
+        if get!(rson, get!(dad, p) as usize) == p as u16 {
+            set!(rson, get!(dad, p) as usize, r as u16);
         } else {
-            set!(lson, get!(dad, p), r);
+            set!(lson, get!(dad, p) as usize, r as u16);
         }
 
-        set!(dad, p, Self::n()); // Remove p
+        set!(dad, p, Self::n() as u16); // Remove p
 
         (match_position, match_length)
     }
@@ -228,46 +221,46 @@ impl Lzs {
     #[inline(always)]
     fn delete_node(
         p: usize,
-        lson: &mut [usize; Self::n() + 1],
-        rson: &mut [usize; Self::n() + 257],
-        dad: &mut [usize; Self::n() + 1],
+        lson: &mut [u16; Self::n() + 1],
+        rson: &mut [u16; Self::n() + 257],
+        dad: &mut [u16; Self::n() + 1],
     ) {
-        if get!(dad, p) == Self::n() {
+        if get!(dad, p) == Self::n() as u16 {
             return; // Not in tree
         }
 
-        let q = if get!(rson, p) == Self::n() {
-            get!(lson, p)
-        } else if get!(lson, p) == Self::n() {
-            get!(rson, p)
+        let q = if get!(rson, p) == Self::n() as u16 {
+            get!(lson, p) as usize
+        } else if get!(lson, p) == Self::n() as u16 {
+            get!(rson, p) as usize
         } else {
-            let mut q = get!(lson, p);
-            if get!(rson, q) != Self::n() {
+            let mut q = get!(lson, p) as usize;
+            if get!(rson, q) != Self::n() as u16 {
                 loop {
-                    q = get!(rson, q);
+                    q = get!(rson, q) as usize;
 
-                    if get!(rson, q) == Self::n() {
+                    if get!(rson, q) == Self::n() as u16 {
                         break;
                     }
                 }
-                set!(rson, get!(dad, q), get!(lson, q));
-                set!(dad, get!(lson, q), get!(dad, q));
+                set!(rson, get!(dad, q) as usize, get!(lson, q));
+                set!(dad, get!(lson, q) as usize, get!(dad, q));
                 set!(lson, q, get!(lson, p));
-                set!(dad, get!(lson, p), q);
+                set!(dad, get!(lson, p) as usize, q as u16);
             }
             set!(rson, q, get!(rson, p));
-            set!(dad, get!(rson, p), q);
+            set!(dad, get!(rson, p) as usize, q as u16);
             q
         };
 
         set!(dad, q, get!(dad, p));
 
-        if get!(rson, get!(dad, p)) == p {
-            set!(rson, get!(dad, p), q)
+        if get!(rson, get!(dad, p) as usize) == p as u16 {
+            set!(rson, get!(dad, p) as usize, q as u16);
         } else {
-            set!(lson, get!(dad, p), q)
+            set!(lson, get!(dad, p) as usize, q as u16);
         }
 
-        set!(dad, p, Self::n())
+        set!(dad, p, Self::n() as u16);
     }
 }

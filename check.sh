@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TOOLCHAIN=${1:-+nightly}
+TOOLCHAIN=${1:-+stable}
 echo Using toolchain $TOOLCHAIN
 
 set -x
@@ -21,12 +21,12 @@ cargo $TOOLCHAIN clippy --release --no-default-features -- -D warnings || exit 1
 cargo $TOOLCHAIN fmt --all || exit 1
 
 # update readme
-( cd lzss && cargo rdme --force ) || exit 1
+( cd lzs && cargo rdme --force ) || exit 1
 
 # create docs
 if test "$TOOLCHAIN" = "+nightly"
 then
-  RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc -p lzss || exit 1
+  RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc -p lzs || exit 1
 else
   echo "Skipping 'cargo doc' with doc_cfg since it's only available on nightly"
 fi

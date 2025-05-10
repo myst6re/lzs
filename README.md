@@ -10,7 +10,6 @@ This crate is built for embedded systems:
 * Small code size
 * Uses little RAM and CPU
 * `no_std` feature
-* All parameters can be compile-time only
 
 ## lzss crate VS lzs crate
 

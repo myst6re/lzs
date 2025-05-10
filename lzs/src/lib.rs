@@ -13,6 +13,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::manual_assert)]
 #![allow(rustdoc::redundant_explicit_links)]
+#![allow(clippy::doc_overindented_list_items)]
 
 //! # Lempel–Ziv–Storer–Szymanski de-/compression
 //!
@@ -22,7 +23,16 @@
 //! * Small code size
 //! * Uses little RAM and CPU
 //! * `no_std` feature
-//! * All parameters can be compile-time only
+//!
+//! # lzss crate VS lzs crate
+//!
+//! This crate (lzs) implements an early version of the LZSS algorithm published by
+//! Haruhiko Okumura in 1989.
+//!
+//! In this version, only the initial character (C) in configurable.
+//!
+//! The lzss crate implements a version of LZSS that can work bit by bit, instead of byte by byte.
+//! Also the structure is different, meaning lzss crate output is incompatible with lzs crate output.
 //!
 //! # Lack of a header
 //!
@@ -31,10 +41,10 @@
 //! It is recommended to add a header based on the requirements.
 //!
 //! # Origin
-//! This code is based on the [LZSS encoder-decoder by Haruhiko Okumura, public domain](https://oku.edu.mie-u.ac.jp/~okumura/compression/lzss.c).
+//! This code is based on the [LZSS encoder-decoder by Haruhiko Okumura, public domain](http://oak.oakland.edu:80/pub/simtelnet/msdos/arcutils/lz_comp2.zip).
 //!
 //! In order to create an encoder-decoder which is compatible to the program above
-//! the following is required: `C = 0x20` in this library and `P = (1+EI+EJ) / 9` in Okumuras program.
+//! the following is required: `C = 0x20`
 //!
 //! # Features
 //! * `alloc`       - Allows de-/compression with buffer on the heap and the [`VecWriter`](crate::VecWriter).

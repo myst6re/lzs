@@ -25,16 +25,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                         VecWriter::with_capacity(EXAMPLE_DATA.len()),
                     )
                     .void_unwrap();
-                (
-                    compressed,
-                    VecWriter::with_capacity(EXAMPLE_DATA.len()),
-                )
+                (compressed, VecWriter::with_capacity(EXAMPLE_DATA.len()))
             },
-            |(r, w)| {
-                MY_DYN_LZS
-                    .decompress(SliceReader::new(&r), w)
-                    .void_unwrap()
-            },
+            |(r, w)| MY_DYN_LZS.decompress(SliceReader::new(&r), w).void_unwrap(),
             BatchSize::SmallInput,
         )
     });
