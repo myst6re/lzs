@@ -1,12 +1,12 @@
 [package]
-name = "lzss"
-version = "0.9.1"
+name = "lzs"
+version = "0.1.0"
 authors = ["ALeX Kazik <alex@kazik.de>", "Jérôme Arzel <myst6re@gmail.com>"]
 edition = "2021"
-description = "A LZSS en-/decompressor (lossless data compression, no_std capable, in pure Rust)"
-repository = "https://github.com/alexkazik/lzss"
+description = "A LZSS (early implementation) en-/decompressor (lossless data compression, no_std capable, in pure Rust)"
+repository = "https://github.com/myst6re/lzs"
 license = "MIT"
-keywords = ["lzss", "compression", "no_std"]
+keywords = ["lzss", "lzs", "compression", "no_std"]
 categories = ["compression", "no-std"]
 rust-version = "1.64.0"
 

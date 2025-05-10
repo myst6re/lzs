@@ -1,26 +1,26 @@
 # Lempel–Ziv–Storer–Szymanski de-/compression
 
-Lzss-cli is a cli interface to the `lzss` crate.
+lzs-cli is a cli interface to the `lzs` crate.
 
 # Installation
 
 ```shell
-cargo install lzss-cli
+cargo install lzs-cli
 ```
 
 # Usage
 
 ```
-lzss <'e'|'d'> <ei,ej,c>
+lzs <'e'|'d'> <ei,ej,c>
 ```
 
 Either 'e' or 'd' to en-/decode.
-`ei,ej,c` are the compression parameters, see the lzss crate
+`ei,ej,c` are the compression parameters, see the lzs crate
 for more information about that.
 
 Example:
 ```shell
-lzss e 10,4,0x20 <input >outout
+lzs e 10,4,0x20 <input >outout
 ```
 
 # Lack of a header

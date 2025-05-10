@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "lzss",
-    "lzss-cli",
+    "lzs",
+    "lzs-cli",
 ]
 resolver = "2"

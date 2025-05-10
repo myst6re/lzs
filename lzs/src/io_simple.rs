@@ -53,19 +53,18 @@ impl<W: std::io::Write> Write for IOSimpleWriter<'_, W> {
 
 #[cfg(test)]
 mod tests {
-    use crate::error::LzssError;
-    use crate::generic::Lzss;
+    use crate::dynamic::Lzs;
+    use crate::error::LzsError;
     use crate::io_simple::{IOSimpleReader, IOSimpleWriter};
     use std::io::{Cursor, ErrorKind};
 
-    type TestLZSS = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
     const TEST_DATA: &[u8; 27] = b"Sample   Data   11221233123";
 
     #[test]
     fn test_simple_io() {
         let mut output = [0u8; 30];
         let mut output_cursor = Cursor::new(&mut output[..]);
-        let output_result = TestLZSS::compress_stack(
+        let output_result = Lzs::new(0x20).compress(
             IOSimpleReader::new(&mut Cursor::new(TEST_DATA)),
             IOSimpleWriter::new(&mut output_cursor),
         );
@@ -73,19 +72,19 @@ mod tests {
             output_result.map_err(|x| x.map_read_error(|x| x.kind()).map_write_error(|x| x.kind())),
             Ok(())
         );
-        assert_eq!(output_cursor.position(), 26);
+        assert_eq!(output_cursor.position(), 27);
     }
     #[test]
     fn test_simple_io_fail() {
         let mut output = [0u8; 10];
         let mut output_cursor = Cursor::new(&mut output[..]);
-        let output_result = TestLZSS::compress_stack(
+        let output_result = Lzs::new(0x20).compress(
             IOSimpleReader::new(&mut Cursor::new(TEST_DATA)),
             IOSimpleWriter::new(&mut output_cursor),
         );
         assert_eq!(
             output_result.map_err(|x| x.map_read_error(|x| x.kind()).map_write_error(|x| x.kind())),
-            Err(LzssError::WriteError(ErrorKind::WriteZero))
+            Err(LzsError::WriteError(ErrorKind::WriteZero))
         );
     }
 }

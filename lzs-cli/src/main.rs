@@ -1,4 +1,4 @@
-use lzss::{IOSimpleReader, IOSimpleWriter, LzssDyn, LzssError, Read, Write};
+use lzs::{IOSimpleReader, IOSimpleWriter, Lzs, LzsError, Read, Write};
 use std::cell::RefCell;
 use std::io::{stdin, stdout};
 use std::num::ParseIntError;
@@ -12,8 +12,6 @@ use std::str::FromStr;
 #[derive(Debug)]
 struct Args {
     encode: bool,
-    ei: usize,
-    ej: usize,
     c: u8,
 }
 
@@ -36,20 +34,12 @@ fn parse_args() -> Result<Args, &'static str> {
         _ => Err("unknown command, use 'e' or 'd'"),
     }?;
     let params: Vec<_> = args[2].split(',').collect();
-    if params.len() != 3 {
-        return Err("not exactly 3 compression parameters found");
+    if params.len() != 1 {
+        return Err("not exactly 1 compression parameter found");
     }
-    let ei = params[0]
-        .trim()
-        .parse::<usize>()
-        .map_err(|_| "can't read ei")?;
-    let ej = params[1]
-        .trim()
-        .parse::<usize>()
-        .map_err(|_| "can't read ej")?;
-    let c = parse_dec_or_hex_u8(params[2].trim()).map_err(|_| "can't read c")?;
+    let c = parse_dec_or_hex_u8(params[0].trim()).map_err(|_| "can't read c")?;
 
-    Ok(Args { encode, ei, ej, c })
+    Ok(Args { encode, c })
 }
 
 struct ReadCounter<T>(T, Rc<RefCell<usize>>);
@@ -91,24 +81,21 @@ fn main() {
     let args = parse_args().unwrap_or_else(|err| {
         let name = std::env::args().next().unwrap();
         eprintln!("error: {err}");
-        eprintln!("usage: {name} <'e'|'d'> <ei,ej,c>");
-        eprintln!("example: {name} e 10,4,0x20");
+        eprintln!("usage: {name} <'e'|'d'> <c>");
+        eprintln!("example: {name} e 0x20");
         exit(1)
     });
-    let lzss = LzssDyn::new(args.ei, args.ej, args.c).unwrap_or_else(|err| {
-        eprintln!("error: {err}");
-        exit(1)
-    });
+    let lzs = Lzs::new(args.c);
     let mut stdin = stdin();
     let mut stdout = stdout();
     let i_cnt = Rc::new(RefCell::new(0));
     match if args.encode {
-        lzss.compress(
+        lzs.compress(
             ReadCounter(IOSimpleReader::new(&mut stdin), i_cnt.clone()),
             WriteCounter(IOSimpleWriter::new(&mut stdout), 0),
         )
     } else {
-        lzss.decompress(
+        lzs.decompress(
             ReadCounter(IOSimpleReader::new(&mut stdin), i_cnt.clone()),
             WriteCounter(IOSimpleWriter::new(&mut stdout), 0),
         )
@@ -123,11 +110,11 @@ fn main() {
                 eprintln!("the data compression is {:.2}%", (1.0 - ratio) * 100.0)
             }
         }
-        Err(LzssError::ReadError(err)) => {
+        Err(LzsError::ReadError(err)) => {
             eprintln!("error while reading: {err}");
             exit(1)
         }
-        Err(LzssError::WriteError(err)) => {
+        Err(LzsError::WriteError(err)) => {
             eprintln!("error while writing: {err}");
             exit(1)
         }

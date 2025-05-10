@@ -5,7 +5,7 @@ use void::Void;
 /// Read from a slice.
 ///
 /// ```rust
-/// # use lzss::*;
+/// # use lzs::*;
 /// let input_data = [10, 42];
 /// let mut input = SliceReader::new(&input_data);
 /// assert_eq!(input.read(), Ok(Some(10)));
@@ -13,8 +13,8 @@ use void::Void;
 /// assert_eq!(input.read(), Ok(None));
 /// ```
 ///
-/// Use [`void_read_unwrap`](crate::ResultLzssErrorVoidReadExt::void_read_unwrap) to remove the Void from the result.
-/// Or [`void_unwrap`](crate::ResultLzssErrorVoidExt::void_unwrap) if also the writer produces Void.
+/// Use [`void_read_unwrap`](crate::ResultLzsErrorVoidReadExt::void_read_unwrap) to remove the Void from the result.
+/// Or [`void_unwrap`](crate::ResultLzsErrorVoidExt::void_unwrap) if also the writer produces Void.
 pub struct SliceReader<'a> {
     pos: *const u8,
     end: *const u8,
@@ -67,7 +67,7 @@ impl std::error::Error for SliceWriteError {}
 /// Returns amount of written bytes.
 ///
 /// ```rust
-/// # use lzss::*;
+/// # use lzs::*;
 /// let mut buf = [0; 2];
 /// // underfull
 /// let mut output = SliceWriter::new(&mut buf);
@@ -130,7 +130,7 @@ impl Write for SliceWriter<'_> {
 /// Write into a slice which has the exact size of the result.
 ///
 /// ```rust
-/// # use lzss::*;
+/// # use lzs::*;
 /// let mut buf = [0; 2];
 /// // underfull
 /// let mut output = SliceWriterExact::new(&mut buf);

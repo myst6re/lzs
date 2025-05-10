@@ -8,7 +8,7 @@ line-terminator = "lf"
 ## If you are using a workspace to hold multiple projects, use this to select the project from
 ## which to extract the documentation from.  It can be useful to also set `readme-path` to create
 ## the README file in the root of the project.
-#workspace-project = "lzss"
+#workspace-project = "lzs"
 #
 ## The default entrypoint will be `src/lib.rs`.  You can change that in the `entrypoint` table.
 [entrypoint]

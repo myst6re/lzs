@@ -8,8 +8,8 @@ use void::Void;
 /// In order to write into a referenced vector use [`IOSimpleWriter`](crate::IOSimpleWriter),
 /// and [`SliceReader`](crate::SliceReader) to read from a vector.
 ///
-/// Use [`void_write_unwrap`](crate::ResultLzssErrorVoidWriteExt::void_write_unwrap) to remove the Void from the result.
-/// Or [`void_unwrap`](crate::ResultLzssErrorVoidExt::void_unwrap) if also the reader produces Void.
+/// Use [`void_write_unwrap`](crate::ResultLzsErrorVoidWriteExt::void_write_unwrap) to remove the Void from the result.
+/// Or [`void_unwrap`](crate::ResultLzsErrorVoidExt::void_unwrap) if also the reader produces Void.
 #[cfg_attr(docsrs, doc(cfg(any(feature = "alloc", feature = "std"))))]
 pub struct VecWriter(Vec<u8>);
 impl VecWriter {

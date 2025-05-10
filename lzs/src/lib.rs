@@ -16,28 +16,13 @@
 
 //! # Lempel–Ziv–Storer–Szymanski de-/compression
 //!
-//! `lzss` is a lossless data compression algorithm in pure Rust.
+//! `LZSS` is a lossless data compression algorithm in pure Rust.
 //! This crate is built for embedded systems:
 //!
 //! * Small code size
 //! * Uses little RAM and CPU
 //! * `no_std` feature
 //! * All parameters can be compile-time only
-//!
-//! # Generic vs. dynamic
-//!
-//! This crate comes in two flavors: generic ([`Lzss`](crate::Lzss)) and dynamic ([`LzssDyn`](crate::LzssDyn)).
-//!
-//! The dynamic one has one compress function and all parameters are passed to
-//! it at runtime, making it very adaptive.
-//!
-//! The generic one has compile-time parameters will produce a function for each
-//! different sets of parameters. This function will be more optimized by the
-//! compiler than the dynamic one, the downside is that multiple functions are
-//! generated when multiple parameter sets are used.
-//!
-//! (The same applies for decompress and other functions, only used function will
-//! be in the generated program.)
 //!
 //! # Lack of a header
 //!
@@ -55,7 +40,7 @@
 //! * `alloc`       - Allows de-/compression with buffer on the heap and the [`VecWriter`](crate::VecWriter).
 //! * `safe`        - Only use safe code (see Safety below).
 //! * `std`         - Enables `alloc` and additional [`IOSimpleReader`](crate::IOSimpleReader), [`IOSimpleWriter`](crate::IOSimpleWriter),
-//!                   and the [`Error`](::std::error::Error) instance for [`LzssError`](crate::LzssError) and [`LzssDynError`](crate::LzssDynError).
+//!                   and the [`Error`](::std::error::Error) instance for [`LzsError`](crate::LzsError).
 //!
 //! `std` and `safe` are enabled by default.
 //!
@@ -63,22 +48,21 @@
 //! With defaults (`std` and `safe`):
 //! ```toml
 //! [dependencies]
-//! lzss = "0.9"
+//! lzs = "0.9"
 //! ```
 //!
 //! With `no_std` (and without `safe`):
 //! ```toml
 //! [dependencies]
-//! lzss = { version = "0.9", default-features = false }
+//! lzs = { version = "0.9", default-features = false }
 //! ```
 //!
 //! # Example
 //! ```rust
-//! # use lzss::{Lzss, SliceReader, SliceWriter};
-//! type MyLzss = Lzss<10, 4, 1, 0x20, { 1 << 10 }, { 2 << 10 }>;
+//! # use lzs::{Lzs, SliceReader, SliceWriter};
 //! let input = b"Example Data";
 //! let mut output = [0; 30];
-//! let result = MyLzss::compress(
+//! let result = Lzs::new(0x20).compress(
 //!   SliceReader::new(input),
 //!   SliceWriter::new(&mut output),
 //! );
@@ -93,13 +77,8 @@
 //! But on smaller systems (like microcontrollers, where `no_std` is needed) it may be noticeable.
 //! Which is the reason wht it can be switched on/off.
 
-#[cfg(feature = "alloc")]
-#[macro_use]
-extern crate alloc;
-
-pub use crate::dynamic::{LzssDyn, LzssDynError};
-pub use crate::error::LzssError;
-pub use crate::generic::Lzss;
+pub use crate::dynamic::Lzs;
+pub use crate::error::LzsError;
 #[cfg(feature = "std")]
 pub use crate::io_simple::{IOSimpleReader, IOSimpleWriter};
 pub use crate::read_write::{Read, Write};
@@ -107,13 +86,11 @@ pub use crate::slice::{SliceReader, SliceWriteError, SliceWriter, SliceWriterExa
 #[cfg(feature = "alloc")]
 pub use crate::vec::VecWriter;
 pub use crate::void::{
-    ResultLzssErrorVoidExt, ResultLzssErrorVoidReadExt, ResultLzssErrorVoidWriteExt,
+    ResultLzsErrorVoidExt, ResultLzsErrorVoidReadExt, ResultLzsErrorVoidWriteExt,
 };
 
-mod bits;
 mod dynamic;
 mod error;
-mod generic;
 #[cfg(feature = "std")]
 mod io_simple;
 mod macros;

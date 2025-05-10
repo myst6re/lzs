@@ -1,0 +1,13 @@
+[package]
+name = "lzs-cli"
+version = "0.1.0"
+authors = ["ALeX Kazik <git@kazik.de>", "Jérôme Arzel <myst6re@gmail.com>"]
+edition = "2021"
+description = "A LZSS (early implementation) en-/decompressor CLI (lossless data compression, in pure Rust)"
+repository = "https://github.com/myst6re/lzs"
+license = "MIT"
+keywords = ["lzss", "lzs", "compression", "cli"]
+categories = ["compression"]
+
+[dependencies]
+lzs = { path = "../lzs" }

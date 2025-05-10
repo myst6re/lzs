@@ -24,21 +24,5 @@ macro_rules! set {
     };
 }
 
-#[cfg(not(feature = "safe"))]
-macro_rules! search_loop {
-    ($s:ident, $r:ident, $buffer:ident) => {
-        ($s..$r)
-            .map(|i| (i, unsafe { $buffer.get_unchecked(i) }))
-            .rev()
-    };
-}
-#[cfg(feature = "safe")]
-macro_rules! search_loop {
-    ($s:ident, $r:ident, $buffer:ident) => {
-        ($s..$r).zip(&$buffer[$s..$r]).rev()
-    };
-}
-
 pub(crate) use get;
-pub(crate) use search_loop;
 pub(crate) use set;
