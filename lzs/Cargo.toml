@@ -1,6 +1,6 @@
 [package]
 name = "lzs"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["ALeX Kazik <alex@kazik.de>", "Jérôme Arzel <myst6re@gmail.com>"]
 edition = "2021"
 description = "A LZSS (early implementation) en-/decompressor (lossless data compression, no_std capable, in pure Rust)"
