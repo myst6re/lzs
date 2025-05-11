@@ -1,3 +1,6 @@
+[![Dependency status](https://deps.rs/repo/github/myst6re/lzs/status.svg)](https://deps.rs/repo/github/myst6re/lzs)
+[![crates.io](https://img.shields.io/crates/v/lzs.svg)](https://crates.io/crates/lzs)
+
 # crate lzs
 
 <!-- cargo-rdme start -->
