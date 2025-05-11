@@ -201,13 +201,16 @@ impl Lzs {
         set!(lson, r, get!(lson, p));
         set!(rson, r, get!(rson, p));
 
-        set!(dad, get!(lson, p) as usize, r as u16);
-        set!(dad, get!(rson, p) as usize, r as u16);
+        let e = get!(lson, p) as usize;
+        set!(dad, e, r as u16);
+        let e = get!(rson, p) as usize;
+        set!(dad, e, r as u16);
 
-        if get!(rson, get!(dad, p) as usize) == p as u16 {
-            set!(rson, get!(dad, p) as usize, r as u16);
+        let e = get!(dad, p) as usize;
+        if get!(rson, e) == p as u16 {
+            set!(rson, e, r as u16);
         } else {
-            set!(lson, get!(dad, p) as usize, r as u16);
+            set!(lson, e, r as u16);
         }
 
         set!(dad, p, Self::n() as u16); // Remove p
@@ -243,22 +246,28 @@ impl Lzs {
                         break;
                     }
                 }
-                set!(rson, get!(dad, q) as usize, get!(lson, q));
-                set!(dad, get!(lson, q) as usize, get!(dad, q));
+                let e = get!(dad, q) as usize;
+                set!(rson, e, get!(lson, q));
+                let e = get!(lson, q) as usize;
+                set!(dad, e, get!(dad, q));
                 set!(lson, q, get!(lson, p));
-                set!(dad, get!(lson, p) as usize, q as u16);
+                let e = get!(lson, p) as usize;
+                set!(dad, e, q as u16);
             }
             set!(rson, q, get!(rson, p));
-            set!(dad, get!(rson, p) as usize, q as u16);
+            let e = get!(rson, p) as usize;
+            set!(dad, e, q as u16);
             q
         };
 
-        set!(dad, q, get!(dad, p));
+        let e = get!(dad, p);
+        set!(dad, q, e);
 
-        if get!(rson, get!(dad, p) as usize) == p as u16 {
-            set!(rson, get!(dad, p) as usize, q as u16);
+        let e = get!(dad, p) as usize;
+        if get!(rson, e) == p as u16 {
+            set!(rson, e, q as u16);
         } else {
-            set!(lson, get!(dad, p) as usize, q as u16);
+            set!(lson, e, q as u16);
         }
 
         set!(dad, p, Self::n() as u16);

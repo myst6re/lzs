@@ -51,3 +51,86 @@ jobs:
       # tests (safe+std+alloc, alloc) (std implies alloc, tests require alloc)
       - run: cargo test --release --all-features -- --include-ignored
       - run: cargo test --release --no-default-features --features alloc -- --include-ignored
+
+  main_build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        include:
+          - os: ubuntu-latest
+            name: linux64
+            pattern: lzs
+          - os: windows-latest
+            name: windows64
+            pattern: lzs.exe
+          - os: macos-latest
+            name: macos-arm64
+            pattern: lzs
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - run: rustup toolchain install stable --profile minimal
+
+    - name: Build exe
+      run: cargo build --release -p lzs-cli
+
+    - name: Get version
+      shell: bash
+      run: |
+        version=$(cargo pkgid -p lzs-cli | cut -d "#" -f2)
+        if [ "$GITHUB_REF_TYPE" != tag ]; then
+          version="${version}-continuous.$GITHUB_RUN_NUMBER"
+        fi
+        echo "LZS_CLI_VERSION=$version" >> $GITHUB_ENV
+
+    - name: Create zip
+      shell: bash
+      run: |
+        dir='${{ github.workspace }}'"/lzs-${LZS_CLI_VERSION}-${{ matrix.name }}"
+        mkdir -p "$dir"
+        cp "target/release/${{ matrix.pattern }}" "$dir"
+        7z a '${{ github.workspace }}'"/lzs-${LZS_CLI_VERSION}-${{ matrix.name }}.zip" "$dir"
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-${{ matrix.name }}
+        path: ${{ github.workspace }}/lzs-*-${{ matrix.name }}.zip
+
+  release_assets:
+    name: Release
+    needs:
+    - ci
+    - main_build
+    concurrency: release-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Files
+      uses: actions/download-artifact@v4
+
+    - name: Deploy Package
+      if: github.event.ref_type != 'tag' && github.ref == 'refs/heads/master'
+      uses: crowbarmaster/GH-Automatic-Releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "continuous"
+        prerelease: true
+        title: "Unstable Build"
+        files: |
+          artifact-*/*
+
+    - name: Deploy Package
+      if: github.event.ref_type == 'tag'
+      uses: crowbarmaster/GH-Automatic-Releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        title: ${{ github.event.ref }}
+        files: |
+          artifact-*/*

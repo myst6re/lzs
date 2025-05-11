@@ -7,7 +7,7 @@ macro_rules! get {
 #[cfg(not(feature = "safe"))]
 macro_rules! set {
     ($slice:ident,$offset:expr,$value:expr) => {
-        *unsafe { $slice.get_unchecked_mut($offset) } = $value as u8;
+        *unsafe { $slice.get_unchecked_mut($offset) } = $value;
     };
 }
 

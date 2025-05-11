@@ -11,3 +11,7 @@ categories = ["compression"]
 
 [dependencies]
 lzs = { path = "../lzs" }
+
+[[bin]]
+name = "lzs"
+path = "src/main.rs"
